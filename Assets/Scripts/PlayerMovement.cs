@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
@@ -12,7 +13,8 @@ public class PlayerMovement : MonoBehaviour
     private float inputAxis;
 
     public GameObject bulletObject;
-    public float bullectSpeed = 5f;
+    // public float bullectSpeed = 5f;
+    public Vector2 moveDirection = Vector2.right;  // movement direction
     public float moveSpeed = 5f;
     public float maxJumpHeight = 5f;
     public float maxJumpTime = 1f;
@@ -24,6 +26,7 @@ public class PlayerMovement : MonoBehaviour
     public bool falling => velocity.y < 0f && !grounded;
 
     private bool canMove = true; // Flag to control movement constraint
+    private bool isSkillCoolDown = false;
 
     private void Awake()
     {
@@ -65,7 +68,7 @@ public class PlayerMovement : MonoBehaviour
             HorizontalMovement();
             ShootBullet();
             grounded = rigidbody.Raycast(Vector2.down);
-
+            //Debug.Log(grounded);
             if (grounded)
             {
                 GroundedMovement();
@@ -80,12 +83,12 @@ public class PlayerMovement : MonoBehaviour
         // move mario based on his velocity
         Vector2 position = rigidbody.position;
         position += velocity * Time.fixedDeltaTime;
-
+    
         // clamp within the screen bounds
         Vector2 leftEdge = camera.ScreenToWorldPoint(Vector2.zero);
         Vector2 rightEdge = camera.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
         position.x = Mathf.Clamp(position.x, leftEdge.x + 0.5f, rightEdge.x - 0.5f);
-
+    
         rigidbody.MovePosition(position);
     }
 
@@ -93,13 +96,23 @@ public class PlayerMovement : MonoBehaviour
     {
         // accelerate / decelerate
         inputAxis = Input.GetAxis("Horizontal");
-        float speedBuff = 1.0f;
-        if (playerColorChange.GetColorName() == "Green" && Input.GetKeyDown(KeyCode.U))
+        if (inputAxis > 0)
         {
-
-            speedBuff = 5.0f;
+            moveDirection = Vector2.right;
         }
-        velocity.x = Mathf.MoveTowards(velocity.x * speedBuff, inputAxis * moveSpeed, moveSpeed * Time.deltaTime);
+        else if (inputAxis < 0)
+        {
+            moveDirection = Vector2.left;
+        }
+        float speedBuff = 1.0f;
+        if (playerColorChange.GetColorName() == "Green" && Input.GetKeyDown(KeyCode.U) && !isSkillCoolDown)
+        {
+            speedBuff = 6.0f;
+            isSkillCoolDown = true;
+            StartCoroutine(SkillCooldownRoutine());
+        }
+        // velocity.x = Mathf.MoveTowards(velocity.x * speedBuff, inputAxis * moveSpeed, moveSpeed * Time.deltaTime);
+        velocity.x = Mathf.MoveTowards(velocity.x * speedBuff, inputAxis * moveSpeed * speedBuff, 1f);
 
 
         // check if running into a wall
@@ -107,6 +120,9 @@ public class PlayerMovement : MonoBehaviour
         {
             velocity.x = 0f;
         }
+        
+        Vector2 position = rigidbody.position;
+        position += velocity * Time.fixedDeltaTime;
     }
 
     private void GroundedMovement()
@@ -114,17 +130,29 @@ public class PlayerMovement : MonoBehaviour
         // prevent gravity from infinitly building up
         velocity.y = Mathf.Max(velocity.y, 0f);
         jumping = velocity.y > 0f;
-        float jumpBuff = 1f;
         // perform jump
         if (Input.GetButtonDown("Jump"))
         {
-            if (playerColorChange.GetColorName() == "Red" && Input.GetKey(KeyCode.U))
-            {
-                jumpBuff = 1.2f;
-            }
+            Debug.Log("Jumping!");
+            velocity.y = jumpForce;
+            jumping = true;
+        }
+        else if (playerColorChange.GetColorName() == "Red" && Input.GetKeyDown(KeyCode.U))
+        {
+            float jumpBuff = 1.65f;
             velocity.y = jumpForce * jumpBuff;
             jumping = true;
         }
+    }
+    private IEnumerator SkillCooldownRoutine()
+    {
+        float startTime = Time.time;
+        while (isSkillCoolDown && Time.time - startTime < 2f)
+        {
+            yield return null; // Wait for next frame
+        }
+
+        isSkillCoolDown = false; // Skill is ready after cooldown
     }
 
     private void ShootBullet()
@@ -133,6 +161,12 @@ public class PlayerMovement : MonoBehaviour
         {
             GameObject bullet = Instantiate(bulletObject, rigidbody.position, Quaternion.identity);
             BulletController bc = bullet.GetComponent<BulletController>();
+            // bullet.AddComponent<BulletController>();
+            if (bc != null)
+            {
+                bc.moveDirection = moveDirection;
+                bc.DestroyBullet();
+            }
         }
     }
 
