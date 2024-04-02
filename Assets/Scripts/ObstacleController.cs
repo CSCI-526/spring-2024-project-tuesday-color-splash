@@ -26,5 +26,6 @@ public class ObstacleController : MonoBehaviour
             // Colors don't match, set collider size to default
             boxCollider.size = new Vector2(1f, 1f); // Adjust this size according to your needs
         }
+        
     }
 }

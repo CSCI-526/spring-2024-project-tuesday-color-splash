@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -21,8 +22,11 @@ public class LevelUIController : MonoBehaviour
     
     public void NextLevel()
     {
-        int currentLevel = PlayerPrefs.GetInt("currentLevel", 1);
-        SceneManager.LoadScene("1-" + (currentLevel + 1));
+        FindObjectOfType<IDManager>().deleteSessionID();
+        FindObjectOfType<IDManager>().createSessionID();
+        int currentLevel = PlayerPrefs.GetInt("currentLevel", 1) + 1;
+        Debug.Log("Next level: " + currentLevel);
+        SceneManager.LoadScene(currentLevel.ToString());
     }
     
     public void BackToMainMenu()
@@ -37,6 +41,7 @@ public class LevelUIController : MonoBehaviour
     
     public void RestartCurrentScene()
     {
+        Debug.Log("Game restart");
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         //player.position = new Vector3(-16, -3, 0);
         //instructionScreen.SetActive(false);

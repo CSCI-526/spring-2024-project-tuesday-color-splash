@@ -6,8 +6,17 @@ using UnityEngine.SceneManagement;
 
 public class MainMenuController : MonoBehaviour
 {
+   void Start()
+    {
+        FindObjectOfType<IDManager>().createUserID();
+    }
     public void OpenLevelSelect()
     {
         SceneManager.LoadScene("LevelSelect");
+    }
+
+    public void OpenInstructions()
+    {
+        SceneManager.LoadScene("Instructions");
     }
 }
