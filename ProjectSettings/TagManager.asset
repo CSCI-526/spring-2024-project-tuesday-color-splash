@@ -9,6 +9,8 @@ TagManager:
   - GreenPlatform
   - Platform
   - box
+  - Checkpoint
+  - ckptText
   layers:
   - Default
   - TransparentFX

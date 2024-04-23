@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviour
     public int currentLevel;
     public int maxLevel;
     public Transform player;
+    public GameObject ckptText;
 
     // private int redCount;
     // private int greenCount;
@@ -22,6 +23,10 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         Instance = this;
+        PlayerPrefs.SetInt("fromCheckpoint", 0);
+        PlayerPrefs.SetString("lastColor", "Red");
+        PlayerPrefs.SetInt("reachCheckpoint", 0);
+        PlayerPrefs.Save();
     }
 
     void Start()
@@ -31,6 +36,18 @@ public class GameManager : MonoBehaviour
         // blueCount = 1;
 
         PlayerPrefs.SetInt("currentLevel", currentLevel);
+
+        if(currentLevel == 1)
+        {
+            PlayerPrefs.SetInt("level1Firsttime", 0);
+        }
+
+        if (PlayerPrefs.GetInt("fromCheckpoint") == 0)
+        {
+            // checkpointPosition = transform.position;
+            PlayerPrefs.SetFloat("ckpt_x", PlayerPrefs.GetFloat("init_x"));
+            PlayerPrefs.SetFloat("ckpt_y", PlayerPrefs.GetFloat("init_y"));
+        }
         PlayerPrefs.Save();
 
         Time.timeScale = 1f;
@@ -98,6 +115,7 @@ public class GameManager : MonoBehaviour
         // Application.Quit();
        
         FindObjectOfType<AnalyticsRecorder>().recordDeath(player.position);
+        PlayerPrefs.SetInt("level1Firsttime", 1);
         FindObjectOfType<EndGame>().End(false);
     }
 
@@ -115,5 +133,12 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetInt("maxLevel", currentLevel + 1);
         PlayerPrefs.Save();
         FindObjectOfType<EndGame>().End(true);
+    }
+
+    public void UpdateCheckpointPosition(Vector2 position)
+    {
+        PlayerPrefs.SetFloat("ckpt_x", position.x);
+        PlayerPrefs.SetFloat("ckpt_y", position.y);
+        PlayerPrefs.Save();
     }
 }

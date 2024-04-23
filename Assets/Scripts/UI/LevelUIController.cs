@@ -8,10 +8,22 @@ public class LevelUIController : MonoBehaviour
 {
     public GameObject instructionScreen;
     public GameObject pauseScreen;
+    public GameObject visualGuidance;
+    public GameObject closeVisual;
     public Transform player;
+    public bool isVG = false;
     
     void Awake()
     {
+        // PlayerPrefs.SetInt("firstTime", 0);
+        bool firstTime = PlayerPrefs.GetInt("firstTime", 0) == 0;
+        bool level1FirstTime = PlayerPrefs.GetInt("level1Firsttime", 0) == 0;
+        if((FindObjectOfType<GameManager>().currentLevel == 1 && level1FirstTime) || firstTime)
+        {
+            isVG = true;
+            visualGuidance.SetActive(true);
+        }
+        
         instructionScreen.SetActive(false);
     }
     
@@ -51,5 +63,17 @@ public class LevelUIController : MonoBehaviour
     public void ResumeGame()
     {
         FindObjectOfType<PauseGame>().Resume();
+    }
+
+    public void ResumeFromCheckpoint()
+    {
+        FindObjectOfType<EndGame>().ResumeFromCheckpoint();
+    }
+
+    public void CloseVG()
+    {
+        PlayerPrefs.SetInt("firstTime", 1);
+        isVG = false;
+        visualGuidance.SetActive(false);
     }
 }
